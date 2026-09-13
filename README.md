@@ -69,23 +69,6 @@ Permissions are checked based on the authenticated user's ID stored in the JWT c
 * `PUT /api/Categories/{id}` — Update a category
 * `DELETE /api/Categories/{id}` — Delete a category
 
-## Project Structure
-
-```text
-ProductManagement/
-├── Authorization/
-├── Controllers/
-├── Data/
-├── DTOs/
-├── Filters/
-├── Middlewares/
-├── Models/
-├── Services/
-├── AttachmentOptions.cs
-├── JwtOptions.cs
-└── Program.cs
-```
-
 ## Getting Started
 
 ### Prerequisites
@@ -124,28 +107,3 @@ Sensitive configuration values should not be committed to the repository.
 3. Apply the EF Core migrations.
 4. Run the application.
 5. Open Swagger to test the API.
-
-## Concepts Practiced
-
-* ASP.NET Core Web API
-* Dependency Injection
-* Entity Framework Core
-* LINQ
-* Model Binding and Validation
-* Middleware
-* Action Filters
-* JWT Authentication
-* Claims and Identity
-* Permission-based Authorization
-* DTOs
-* REST API status codes
-* Configuration and Options
-* Logging
-
-## Future Improvements
-
-* Password hashing
-* Async EF Core operations
-* Improved rate limiting
-* Centralized error handling
-* Improved secret management
