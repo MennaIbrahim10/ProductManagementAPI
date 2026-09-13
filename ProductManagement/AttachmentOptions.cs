@@ -1,5 +1,4 @@
-﻿
-namespace ProductManagement
+﻿namespace ProductManagement
 {
     public class AttachmentOptions
     {

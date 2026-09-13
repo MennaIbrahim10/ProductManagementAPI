@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProductManagement.Data;
+﻿using ProductManagement.Data;
+using ProductManagement.DTOs;
 using ProductManagement.Models;
 
 namespace ProductManagement.Services
@@ -14,63 +13,87 @@ namespace ProductManagement.Services
             _context = context;
         }
 
-        public IEnumerable<object> GetAllProducts ()
+        public IEnumerable<ProductDto> GetAllProducts ()
         {
             var records = _context.products.Select(
-                p => new {
-                    p.Id,
-                    p.Name,
-                    p.Price,
-                    p.Stock,
-                    Category = new { p.category.Id, p.category.Name }
-                }).ToList();
+                p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    Stock = p.Stock,
+                    Category = new CategorySummaryDto
+                    {
+                        Id = p.Category.Id,
+                        Name = p.Category.Name
+                    }
+                });
             return records;
         }
 
-        public IEnumerable<object> GetCategoryProducts(int CategoryId)
+        public IEnumerable<ProductDto> GetCategoryProducts(int categoryId)
         {
             var records = _context.products
-            .Where(p => p.category.Id == CategoryId)
-            .Select(p => new
+            .Where(p => p.CategoryId == categoryId)
+            .Select(p => new ProductDto
             {
-                p.Id,
-                p.Name,
-                p.Price,
-                p.Stock,
-                Category = new{p.category.Id, p.category.Name}
-            }).ToList();
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Stock = p.Stock,
+                Category = new CategorySummaryDto
+                {
+                    Id = p.Category.Id,
+                    Name = p.Category.Name
+                }
+            });
             return records;
         }
 
-        public object GetProductById (int id)
+        public ProductDto GetProductById (int id)
         {
             var record = _context.products.Where(p => p.Id == id)
-            .Select(p => new
+            .Select(p => new ProductDto
             {
-                p.Id,
-                p.Name,
-                p.Price,
-                p.Stock,
-                Category = new
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Stock = p.Stock,
+                Category = new CategorySummaryDto
                 {
-                    p.category.Id,
-                    p.category.Name
+                    Id = p.Category.Id,
+                    Name = p.Category.Name
                 }
             })
            .FirstOrDefault();
             return record;
         }
 
-        public bool AddnewProduct (Product product)
+        public ProductDto AddNewProduct(Product product)
         {
             if (!_context.categories.Any(c => c.Id == product.CategoryId))
-                return false;
+                return null;
+
             _context.products.Add(product);
             _context.SaveChanges();
-            return true;
+
+            var category = _context.categories.Find(product.CategoryId);
+            ProductDto productDto = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Stock = product.Stock,
+                Category = new CategorySummaryDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                }
+            };      
+            return productDto;
         }
 
-        public bool Update_Product (Product product, int id)
+        public bool UpdateProduct(Product product, int id)
         {
             var existingProduct = _context.products.Find(id);
             if (existingProduct == null || !(_context.categories.Any(c => c.Id == product.CategoryId)))
@@ -84,7 +107,7 @@ namespace ProductManagement.Services
             return true;
         }
 
-        public bool Delete_Product (int id)
+        public bool DeleteProduct(int id)
         {
             var existingProduct = _context.products.Find(id);
             if (existingProduct == null)
@@ -93,5 +116,6 @@ namespace ProductManagement.Services
             _context.SaveChanges();
             return true;
         }
+
     }
 }

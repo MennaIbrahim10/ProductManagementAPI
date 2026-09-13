@@ -1,13 +1,14 @@
-﻿using ProductManagement.Models;
+﻿using ProductManagement.DTOs;
+using ProductManagement.Models;
 
 namespace ProductManagement.Services
 {
     public interface ICategoryService
     {
-        public IEnumerable<object> GetAllCategories();
-        public object GetCategoryById(int id);
-        public bool CreatenewCategory(Category category);
-        public bool Update_Category(Category category, int id);
-        public int Delete_Category(int id);
+        IEnumerable<CategoryDto> GetAllCategories();
+        CategoryDto GetCategoryById(int id);
+        public CategoryDto CreateNewCategory(Category category);
+        public bool UpdateCategory(Category category, int id);
+        public DeleteCategoryResult DeleteCategory(int id);
     }
 }

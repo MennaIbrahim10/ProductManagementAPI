@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagement.Authorization;
+using ProductManagement.DTOs;
 using ProductManagement.Models;
 using ProductManagement.Services;
 
@@ -24,7 +25,7 @@ namespace ProductManagement.Controllers
         [HttpGet]
         [Route("")]
         [PermissionBasedAuthorization(Permission.ReadProducts)]
-        public ActionResult<IEnumerable<object>> GetAll([FromQuery] int ? categoryId)
+        public ActionResult<IEnumerable<ProductDto>> GetAll([FromQuery] int ? categoryId)
         {
             if (categoryId.HasValue)
                 return Ok(_productService.GetCategoryProducts(categoryId.Value));
@@ -35,18 +36,18 @@ namespace ProductManagement.Controllers
         [HttpGet]
         [Route("{id}")]
         [PermissionBasedAuthorization(Permission.ReadProducts)]
-        public ActionResult<object> GetById([FromRoute]int id)
+        public ActionResult<ProductDto> GetById([FromRoute]int id)
         {
             _logger.LogInformation("Getting product with id {id}", id);
 
-            object Result = _productService.GetProductById(id);
-            if (Result == null)
+            ProductDto result = _productService.GetProductById(id);
+            if (result == null)
             {
                 _logger.LogWarning("Product with id {id} was not found", id);
                 return NotFound();  
             }
 
-            return Ok(Result);
+            return Ok(result);
         }
 
 
@@ -54,21 +55,40 @@ namespace ProductManagement.Controllers
         [HttpPost]
         [Route("")]
         [PermissionBasedAuthorization(Permission.AddProducts)]
-        public ActionResult AddProduct([FromBody] Product product)
+        public ActionResult AddProduct([FromBody] ProductRequestDto productDto)
         {
-            if (_productService.AddnewProduct(product))
-                return Ok(product);
-            else 
+            Product product = new Product
+            {
+                Name = productDto.Name,
+                Description = productDto.Description,
+                Price = productDto.Price,
+                Stock = productDto.Stock,
+                CategoryId = productDto.CategoryId,
+            };
+
+            ProductDto result = _productService.AddNewProduct(product);
+
+            if (result != null)
+                return CreatedAtAction(nameof(GetById), new { id = result.Id },result);
+            else
                 return NotFound();
         }
 
         [HttpPut]
         [Route("{id}")]
         [PermissionBasedAuthorization(Permission.EditProducts)]
-        public ActionResult UpdateProduct(Product product, int id)
+        public ActionResult UpdateProduct(ProductRequestDto productDto, int id)
         {
+            Product product = new Product
+            {
+                Name = productDto.Name,
+                Description = productDto.Description,
+                Price = productDto.Price,
+                Stock = productDto.Stock,
+                CategoryId = productDto.CategoryId,
+            };
             
-            if (_productService.Update_Product(product, id)) 
+            if (_productService.UpdateProduct(product, id)) 
                 return NoContent();
             else
                 return NotFound();
@@ -80,7 +100,7 @@ namespace ProductManagement.Controllers
         public ActionResult DeleteProduct(int id)
         {
             
-            if (_productService.Delete_Product(id))
+            if (_productService.DeleteProduct(id))
                 return NoContent();
             else
                 return NotFound();          

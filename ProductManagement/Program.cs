@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +15,7 @@ namespace ProductManagement
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
             //لما اديه اسم الفايل دايركت من غير باث معنى كدا ان الفايل موجود فى نفس الفولدر بتاع الابلكيشن وعشان يكون موجود فى نفس الفولد بعمله copy always or copy if newer
             builder.Configuration.AddJsonFile("Config.json");
 
@@ -42,7 +42,7 @@ namespace ProductManagement
             var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
             builder.Services.AddSingleton(jwtOptions);
 
-            builder.Services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,options => 
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => 
             {
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters

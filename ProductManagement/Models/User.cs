@@ -7,6 +7,6 @@
         public string Password { get; set; }
 
         //Navigation
-        public ICollection<UserPermission> UserPermissions { get; set; }
+        public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
     }
 }

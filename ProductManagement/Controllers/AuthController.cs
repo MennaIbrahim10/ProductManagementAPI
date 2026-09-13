@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using ProductManagement.Data;
+using ProductManagement.DTOs;
 using ProductManagement.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace ProductManagement.Controllers
@@ -24,14 +23,17 @@ namespace ProductManagement.Controllers
         }
 
         [HttpPost]
-        public ActionResult<string> Login(User user)
+        public ActionResult<string> Login(LoginDto user)
         {
-            if(_context.users.Any(u => u.UserName == user.UserName && u.Password == user.Password))
+
+            var dbUser = _context.users.FirstOrDefault(u => u.UserName == user.UserName && u.Password == user.Password);
+
+            if (dbUser != null)
             {
                 var identity = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim (ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim (ClaimTypes.Name, user.UserName)
+                    new Claim (ClaimTypes.NameIdentifier, dbUser.Id.ToString()),
+                    new Claim (ClaimTypes.Name, dbUser.UserName)
                 });
 
                 var tokenDescriptor = new SecurityTokenDescriptor
@@ -40,7 +42,7 @@ namespace ProductManagement.Controllers
                     Audience = _jwt.Audience,
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.SigningKey)), SecurityAlgorithms.HmacSha256),
                     Subject = identity,
-                    Expires = DateTime.Now.AddMinutes(_jwt.Lifetime)
+                    Expires = DateTime.UtcNow.AddMinutes(_jwt.Lifetime)
                 };
 
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -49,7 +51,7 @@ namespace ProductManagement.Controllers
                 return Ok(accessToken);
             }
 
-            return BadRequest("Invalid username or password");
+            return Unauthorized("Invalid username or password");
         }
     }
 }

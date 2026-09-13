@@ -15,13 +15,12 @@ namespace ProductManagement.Middlewares
 
         public async Task Invoke (HttpContext context)
         {
-            var stopSWatch = new Stopwatch();
-            stopSWatch.Start ();
+            var stopwatch = Stopwatch.StartNew();
             await _next(context);
-            stopSWatch.Stop ();
+            stopwatch.Stop ();
             _logger.LogInformation($"{context.Request.Method}");
             _logger.LogInformation($"{context.Request.Path}");
-            _logger.LogInformation($"Excution time = {stopSWatch.ElapsedMilliseconds} ms");
+            _logger.LogInformation($"Excution time = {stopwatch.ElapsedMilliseconds} ms");
             _logger.LogInformation($"{context.Response.StatusCode}");
         }
     }

@@ -1,4 +1,5 @@
 ﻿using ProductManagement.Data;
+using ProductManagement.DTOs;
 using ProductManagement.Models;
 
 namespace ProductManagement.Services
@@ -12,24 +13,54 @@ namespace ProductManagement.Services
             _context = context;
         }
 
-        public IEnumerable<object> GetAllCategories()
+        public IEnumerable<CategoryDto> GetAllCategories()
         {
-            var records = _context.categories.Select(c => new { c.Id, c.Name, c.Description, products = c.products.Select(p => new { p.Id, p.Name }) }).ToList();
+            var records = _context.categories.Select(c => new CategoryDto
+            { 
+                Id = c.Id, 
+                Name = c.Name,
+                Description = c.Description, 
+                Products =  c.Products.Select(p => new ProductSummaryDto 
+                { 
+                    Id = p.Id, 
+                    Name = p.Name 
+                }) 
+            }).ToList();
             return records;
         }
-        public object GetCategoryById(int id)
+        public CategoryDto GetCategoryById(int id)
         {
-            var record = _context.categories.Where(c => c.Id == id).Select(c => new { c.Id, c.Name, c.Description, products = c.products.Select(p => new { p.Id, p.Name }) }).FirstOrDefault();
+            var record = _context.categories
+                .Where(c => c.Id == id)
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    Products = c.Products.Select(p => new ProductSummaryDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name
+                    })
+                })
+                .FirstOrDefault();
+
             return record;
         }
-        public bool CreatenewCategory(Category category)
+        public CategoryDto CreateNewCategory(Category category)
         {
             _context.categories.Add(category);
             _context.SaveChanges();
-            return true;
+            CategoryDto categoryDto = new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+            };
+            return categoryDto ;
         }
 
-        public bool Update_Category(Category category, int id)
+        public bool UpdateCategory(Category category, int id)
         {
             var existingCategory = _context.categories.Find(id);
             if (existingCategory == null)
@@ -39,16 +70,20 @@ namespace ProductManagement.Services
             _context.SaveChanges();
             return true;
         }
-        public int Delete_Category(int id)
+        public DeleteCategoryResult DeleteCategory(int id)
         {
-            var ExistingCategory = _context.categories.Find(id);
-            if (ExistingCategory == null)
-                return 1;
+            var existingCategory = _context.categories.Find(id);
+
+            if (existingCategory == null)
+                return DeleteCategoryResult.NotFound;
+
             if (_context.products.Any(p => p.CategoryId == id))
-                return 2;
-            _context.categories.Remove(ExistingCategory);
+                return DeleteCategoryResult.HasProducts;
+
+            _context.categories.Remove(existingCategory);
             _context.SaveChanges();
-            return 3;
+
+            return DeleteCategoryResult.Deleted;
         }
     }
 }

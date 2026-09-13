@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProductManagement.DTOs;
 using ProductManagement.Models;
 using ProductManagement.Services;
 
 namespace ProductManagement.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
@@ -18,7 +20,7 @@ namespace ProductManagement.Controllers
 
         [HttpGet]
         [Route("")]
-        public ActionResult<IEnumerable<object>> GetAll()
+        public ActionResult<IEnumerable<CategoryDto>> GetAll()
         {
             return Ok(_categoryService.GetAllCategories());
         }
@@ -26,22 +28,29 @@ namespace ProductManagement.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public ActionResult<object> GetById(int id)
+        public ActionResult<CategoryDto> GetById(int id)
         {
-            object Result = _categoryService.GetCategoryById(id);
-            return Result == null ? NotFound() : Ok(Result);
+            CategoryDto result = _categoryService.GetCategoryById(id);
+            return result == null ? NotFound() : Ok(result);
         }
 
         [HttpPost]
         [Route("")]
-        public ActionResult CreateCategory(Category category)
+        public ActionResult CreateCategory(CategoryRequestDto categoryDto)
         {
-            if (_categoryService.CreatenewCategory(category))
+            Category category = new Category
+            {
+                Name = categoryDto.Name,
+                Description = categoryDto.Description,
+            };
+             CategoryDto result= _categoryService.CreateNewCategory(category);
+
+            if (result != null)
             {
                 return CreatedAtAction(
                 nameof(GetById),
-                new { id = category.Id },
-                category
+                new { id = result.Id },
+                result
                 );
             }
             else
@@ -50,9 +59,14 @@ namespace ProductManagement.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public ActionResult UpdateCategory(Category category, int id)
+        public ActionResult UpdateCategory(CategoryRequestDto categoryDto, int id)
         {
-            if(_categoryService.Update_Category(category, id)) 
+            Category category = new Category
+            {
+                Name = categoryDto.Name,
+                Description = categoryDto.Description,
+            };
+            if (_categoryService.UpdateCategory(category, id)) 
                 return NoContent();
             else
                 return NotFound();
@@ -62,11 +76,12 @@ namespace ProductManagement.Controllers
         [Route("{id}")]
         public ActionResult DeleteCategory(int id)
         {
-            int result = _categoryService.Delete_Category(id);
-            if (result == 1)
+            DeleteCategoryResult result = _categoryService.DeleteCategory(id);
+
+            if (result == DeleteCategoryResult.NotFound)
                 return NotFound();
-            else if (result == 2)
-                return StatusCode(403);
+            else if (result == DeleteCategoryResult.HasProducts)
+                return Conflict();
             else
                 return NoContent();
         }

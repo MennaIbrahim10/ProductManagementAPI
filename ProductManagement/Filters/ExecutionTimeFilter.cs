@@ -13,8 +13,7 @@ namespace ProductManagement.Filters
         }
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+            var stopwatch = Stopwatch.StartNew();
             await next();
             stopwatch.Stop();
             _logger.LogInformation($"{context.Controller}.{context.ActionDescriptor.DisplayName}\nExecution Time: {stopwatch.ElapsedMilliseconds}ms");
